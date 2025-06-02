@@ -17,9 +17,7 @@ def load_temporal_data():
         if feat.ndim == 1:
             feat = np.sum(adj, axis=1).reshape(-1, 1)
 
-        # Normalize features
         feat = (feat - feat.mean()) / (feat.std() + 1e-5)
-
         edge_index = torch.tensor(np.stack(np.where(adj > 0)), dtype=torch.long)
 
         if edge_index.shape[1] == 0:
@@ -27,9 +25,9 @@ def load_temporal_data():
             edge_index = torch.tensor([[0], [0]], dtype=torch.long)
 
         x = torch.tensor(feat, dtype=torch.float)
-
-        y = torch.tensor([i % 5], dtype=torch.long)
+        y = torch.tensor([i % 5], dtype=torch.long)  # Placeholder label
 
         snapshots.append(Data(x=x, edge_index=edge_index, y=y))
+        print(f"Loaded snapshot {i} with {x.shape[0]} nodes")
 
     return snapshots
