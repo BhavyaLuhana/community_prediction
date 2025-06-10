@@ -1,0 +1,10 @@
+# Ignore all snapshot images (common image formats)
+snapshots/*.png
+snapshots/*.jpg
+snapshots/*.jpeg
+snapshots/*.gif
+snapshots/*.bmp
+snapshots/*.tiff
+
+# Ignore all CSV files
+*.csv
