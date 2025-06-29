@@ -13,21 +13,19 @@ def main():
 
     SAVE_DIR.mkdir(parents=True, exist_ok=True)
 
-    # Sort snapshot files numerically
     snapshot_files = sorted(SNAP_DIR.glob("snapshot_*.gpickle"),
                             key=lambda x: int(x.stem.split("_")[-1]))
 
     if not snapshot_files:
         raise FileNotFoundError(f"No snapshot files found in {SNAP_DIR}")
 
-    print("\n=== Processing Snapshots ===")
+    print("\n Processing Snapshots")
     node_index = {}
 
     for i, snapshot_path in enumerate(snapshot_files, 1):
         try:
             print(f"\nProcessing {snapshot_path.name}...")
 
-            # Load graph snapshot
             with open(snapshot_path, "rb") as f:
                 G = pickle.load(f)
 
@@ -37,7 +35,7 @@ def main():
                 node_index = {node: idx for idx, node in enumerate(nodes)}
                 print(f"Created node index with {len(node_index)} nodes")
 
-            # Initialize adjacency matrix (square, full node count)
+            # Initialize adjacency matrix
             adj = np.zeros((len(node_index), len(node_index)))
 
             # Fill adjacency matrix edges present in snapshot
@@ -45,9 +43,9 @@ def main():
                 if u in node_index and v in node_index:
                     idx_u, idx_v = node_index[u], node_index[v]
                     adj[idx_u][idx_v] = 1
-                    adj[idx_v][idx_u] = 1  # undirected graph
+                    adj[idx_v][idx_u] = 1  
 
-            # Validate adjacency matrix shape and symmetry
+        
             assert adj.shape == (len(node_index), len(node_index)), "Adjacency matrix shape mismatch"
             assert np.allclose(adj, adj.T), "Adjacency matrix is not symmetric"
 

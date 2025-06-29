@@ -22,16 +22,16 @@ def train():
     model.train()
     for epoch in range(50):
         optimizer.zero_grad()
-        out = model(dataset)  # shape: [1, num_classes]
-        label = dataset[-1].y  # shape: [1]
+        out = model(dataset)  
+        label = dataset[-1].y  
 
         if torch.isnan(out).any() or torch.isnan(label).any():
-            print("[Error] NaN encountered!")
+            print("error! NaN encountered!")
             break
 
         loss = F.cross_entropy(out, label)
         if torch.isnan(loss):
-            print("[Error] Loss became NaN!")
+            print("Error! Loss became NaN!")
             break
 
         loss.backward()
@@ -48,10 +48,10 @@ def evaluate():
         for data in dataset:
             x = model.gcn(data.x, data.edge_index)
             x = torch.relu(x)
-            embeddings.append(x.mean(dim=0).cpu().numpy())  # one embedding per snapshot
-            labels_true.append(data.y.item())  # dummy label
+            embeddings.append(x.mean(dim=0).cpu().numpy()) 
+            labels_true.append(data.y.item())  
 
-        node_embeddings = np.stack(embeddings)  # shape: [10, hidden_dim]
+        node_embeddings = np.stack(embeddings)  
         pred_labels = KMeans(n_clusters=5, n_init=10).fit_predict(node_embeddings)
 
         ari = adjusted_rand_score(labels_true, pred_labels)

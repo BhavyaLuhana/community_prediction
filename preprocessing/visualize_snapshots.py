@@ -4,9 +4,7 @@ import networkx as nx
 from pathlib import Path
 
 def build_consistent_layout(snapshot_dir, num_snapshots, seed=42):
-    """
-    Build a consistent node layout across all snapshots using the union of all nodes.
-    """
+
     all_nodes = set()
     for i in range(1, num_snapshots + 1):
         with open(snapshot_dir / f"snapshot_{i}.gpickle", "rb") as f:
@@ -39,7 +37,6 @@ def visualize_snapshots(snapshot_dir, num_snapshots=10, layout_type="consistent"
         plt.figure(figsize=(6, 5))
         plt.title(f"Snapshot {i} - Nodes: {G.number_of_nodes()}, Edges: {G.number_of_edges()}")
 
-        # Choose layout
         if layout_type == "consistent":
             pos = {node: layout_global[node] for node in G.nodes() if node in layout_global}
         else:
@@ -57,7 +54,7 @@ def visualize_snapshots(snapshot_dir, num_snapshots=10, layout_type="consistent"
         save_path = Path(f"snapshot_{i}.png")
         plt.savefig(save_path, dpi=150)
         plt.close()
-        print(f"✅ Saved snapshot {i} to {save_path}")
+        print(f" Saved snapshot {i} to {save_path}")
 
 if __name__ == "__main__":
     snapshot_folder = Path(__file__).parent.parent / "data" / "snapshots"

@@ -25,7 +25,7 @@ def load_temporal_data():
             edge_index = torch.tensor([[0], [0]], dtype=torch.long)
 
         x = torch.tensor(feat, dtype=torch.float)
-        y = torch.tensor([i % 5], dtype=torch.long)  # Placeholder label
+        y = torch.tensor([i % 5], dtype=torch.long)  
 
         snapshots.append(Data(x=x, edge_index=edge_index, y=y))
         print(f"Loaded snapshot {i} with {x.shape[0]} nodes")

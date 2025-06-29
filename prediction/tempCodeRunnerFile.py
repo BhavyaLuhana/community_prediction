@@ -1,1 +1,0 @@
-true_labels = np.array([node_id % 5 for node_id in range(snapshot.num_nodes)])

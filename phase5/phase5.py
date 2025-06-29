@@ -9,24 +9,24 @@ from collections import defaultdict
 from sklearn.cluster import KMeans
 from sklearn.metrics import adjusted_rand_score, normalized_mutual_info_score
 from sklearn.manifold import TSNE
-import community as community_louvain  # pip install python-louvain
+import community as community_louvain  
+import json
 
-# Add parent directory to Python path to access 'temporal' package
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from temporal.temporal_data import load_temporal_data
 from temporal.temporal_model import TemporalGNN
 
-# Set up output folder
 OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "outputs")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 metrics_data = []
 
 def main():
+    all_pred_labels = []
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    print("🔁 Loading temporal snapshots...")
+    print(" Loading temporal snapshots...")
     dataset = load_temporal_data()
 
     snapshot_0 = dataset[0].to(device)
@@ -34,9 +34,9 @@ def main():
 
     try:
         model.load_state_dict(torch.load(os.path.join("..", "temporal_model.pt")))
-        print("✅ Loaded trained model weights")
+        print(" Loaded trained model weights")
     except FileNotFoundError:
-        print("⚠️ Warning: No trained model found. Using random weights")
+        print(" Warning: No trained model found. Using random weights")
 
     model.eval()
 
@@ -50,6 +50,8 @@ def main():
         # KMeans Clustering
         kmeans = KMeans(n_clusters=5, n_init=10, random_state=42)
         pred_labels = kmeans.fit_predict(node_embeddings)
+        all_pred_labels.append(pred_labels)
+
 
         # Louvain Ground Truth
         edge_index = snapshot.edge_index.cpu().numpy()
@@ -67,14 +69,13 @@ def main():
         ari = adjusted_rand_score(filtered_true, filtered_pred)
         nmi = normalized_mutual_info_score(filtered_true, filtered_pred)
 
-        # Modularity using predicted labels (with safe fallback)
+        # Modularity 
         pred_communities = defaultdict(list)
         present_nodes = set(G.nodes)
         for node, comm in enumerate(pred_labels):
             if node in present_nodes:
                 pred_communities[comm].append(node)
 
-        # Prepare valid community list
         assigned_nodes = set()
         community_list = []
         for comm_nodes in pred_communities.values():
@@ -84,12 +85,12 @@ def main():
                 assigned_nodes.update(filtered_nodes)
 
         if assigned_nodes != present_nodes:
-            print(f"⚠️ Warning: Skipping modularity for T{i+1} due to partial node coverage.")
+            print(f" Warning: Skipping modularity for T{i+1} due to partial node coverage.")
             modularity = np.nan
         else:
             modularity = nx.community.modularity(G, community_list)
 
-        print(f"\n📊 Snapshot T{i+1}: ARI={ari:.3f}, NMI={nmi:.3f}, Modularity={modularity:.3f}")
+        print(f"\n Snapshot T{i+1}: ARI={ari:.3f}, NMI={nmi:.3f}, Modularity={modularity:.3f}")
         metrics_data.append({
             "Snapshot": f"T{i+1}",
             "ARI": ari,
@@ -101,12 +102,14 @@ def main():
     df = pd.DataFrame(metrics_data)
     csv_path = os.path.join(OUTPUT_DIR, "evaluation_scores_table.csv")
     df.to_csv(csv_path, index=False)
-    print(f"✅ Saved: {csv_path}")
+    print(f" Saved: {csv_path}")
 
-    # Plot scores over time
+    with open(os.path.join(OUTPUT_DIR, "all_pred_labels.json"), "w") as f:
+        json.dump([list(map(int, labels)) for labels in all_pred_labels], f)
+    print(" Saved: all_pred_labels.json")
+
     plot_scores(df)
 
-    # Generate discussion summary
     generate_discussion(df)
 
 def plot_scores(df):
@@ -124,10 +127,10 @@ def plot_scores(df):
     plot_path = os.path.join(OUTPUT_DIR, "community_evaluation_plot.png")
     plt.savefig(plot_path, dpi=300)
     plt.close()
-    print(f"✅ Saved: {plot_path}")
+    print(f" Saved: {plot_path}")
 
 def generate_discussion(df):
-    lines = ["📄 **Discussion Notes**\n"]
+    lines = [" **Discussion Notes**\n"]
     trends = []
 
     for metric in ["ARI", "NMI", "Modularity"]:
@@ -137,7 +140,7 @@ def generate_discussion(df):
         trends.append(f"- {metric} is {trend} over time.")
 
     lines += trends
-    lines.append("\n📌 Notable Observations:")
+    lines.append("\n Notable Observations:")
     for i in range(1, len(df)):
         drop = False
         for metric in ["ARI", "NMI", "Modularity"]:
@@ -151,7 +154,9 @@ def generate_discussion(df):
     summary_path = os.path.join(OUTPUT_DIR, "discussion_notes.txt")
     with open(summary_path, "w", encoding='utf-8') as f:
         f.write("\n".join(lines))
-    print(f"✅ Saved: {summary_path}")
+    print(f" Saved: {summary_path}")
 
 if __name__ == "__main__":
     main()
+    
+

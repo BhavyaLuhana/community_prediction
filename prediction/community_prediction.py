@@ -9,15 +9,14 @@ from collections import defaultdict
 from sklearn.cluster import KMeans
 from sklearn.metrics import adjusted_rand_score, normalized_mutual_info_score, f1_score
 from sklearn.manifold import TSNE
-import community as community_louvain  # pip install python-louvain
+import community as community_louvain  
 
-# Add parent directory to Python path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from temporal.temporal_data import load_temporal_data
 from temporal.temporal_model import TemporalGNN
 
-metrics_data = []  # For saving ARI/NMI/F1
-jaccard_data = []  # For saving Jaccard similarity
+metrics_data = []  
+jaccard_data = []  
 
 def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -28,12 +27,12 @@ def main():
     snapshot_0 = dataset[0].to(device)
     model = TemporalGNN(node_features=snapshot_0.num_node_features).to(device)
 
-    # Load trained model
+    # Load model
     try:
         model.load_state_dict(torch.load("temporal_model.pt"))
         print("✅ Loaded trained model weights")
     except FileNotFoundError:
-        print("⚠️ Warning: No trained model found. Using random initialization")
+        print(" ")
 
     model.eval()
 
@@ -53,7 +52,6 @@ def main():
         G.add_edges_from(zip(edge_index[0], edge_index[1]))
         partition = community_louvain.best_partition(G)
 
-        # Assign community or fallback to -1
         true_labels = []
         for n in range(snapshot.num_nodes):
             if n in partition:
@@ -87,21 +85,20 @@ def main():
             "F1": f1
         })
 
-        print(f"\n📊 Snapshot {i+1} Evaluation:")
+        print(f"\n Snapshot {i+1} Evaluation:")
         print(f"ARI: {ari:.4f} | NMI: {nmi:.4f} | F1: {f1:.4f}")
 
-    print("\n📉 Generating t-SNE visualization for final snapshot...")
+    print("\n Generating t-SNE visualization for final snapshot...")
     visualize_embeddings(all_embeddings[-1], all_pred_labels[-1], "final_snapshot")
 
-    print("📊 Analyzing community evolution...")
+    print(" Analyzing community evolution...")
     analyze_temporal_consistency(all_pred_labels)
 
-    # Save CSVs
     metrics_df = pd.DataFrame(metrics_data)
     jaccard_df = pd.DataFrame(jaccard_data)
     metrics_df.to_csv("snapshot_metrics.csv", index=False)
     jaccard_df.to_csv("jaccard_similarities.csv", index=False)
-    print("📁 CSVs saved: 'snapshot_metrics.csv' and 'jaccard_similarities.csv'")
+    print(" CSVs saved: 'snapshot_metrics.csv' and 'jaccard_similarities.csv'")
 
 
 def visualize_embeddings(embeddings, labels, name):
@@ -118,7 +115,7 @@ def visualize_embeddings(embeddings, labels, name):
     plt.tight_layout()
     plt.savefig(f"{name}_communities.png", dpi=300)
     plt.close()
-    print(f"✅ Saved: {name}_communities.png")
+    print(f" Saved: {name}_communities.png")
 
 
 def analyze_temporal_consistency(all_pred_labels):
@@ -140,7 +137,7 @@ def analyze_temporal_consistency(all_pred_labels):
     plt.tight_layout()
     plt.savefig("community_evolution.png", dpi=300)
     plt.close()
-    print("✅ Saved: community_evolution.png")
+    print(" Saved: community_evolution.png")
 
     jaccard_similarities = []
     for i in range(len(all_pred_labels)-1):
@@ -168,7 +165,7 @@ def analyze_temporal_consistency(all_pred_labels):
             "Jaccard Similarity": avg_similarity
         })
 
-    print("\n📈 Jaccard Similarity Between Snapshots:")
+    print("\n Jaccard Similarity Between Snapshots:")
     for i, sim in enumerate(jaccard_similarities):
         print(f"Snapshot {i+1} → {i+2}: {sim:.3f}")
 

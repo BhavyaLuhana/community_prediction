@@ -14,9 +14,9 @@ class TemporalGNN(nn.Module):
         for data in sequence:
             x = self.gcn(data.x, data.edge_index)
             x = torch.relu(x)
-            embeddings.append(x.mean(dim=0, keepdim=True))  # [1, hidden_dim]
+            embeddings.append(x.mean(dim=0, keepdim=True)) 
 
-        rnn_input = torch.stack(embeddings, dim=1)  # [1, time_steps, hidden_dim]
-        _, h_n = self.rnn(rnn_input)  # h_n: [1, 1, hidden_dim]
-        final_hidden = torch.clamp(h_n.squeeze(0), -10, 10)  # Prevent exploding values
-        return self.classifier(final_hidden)  # [1, num_classes]
+        rnn_input = torch.stack(embeddings, dim=1)  
+        _, h_n = self.rnn(rnn_input)  
+        final_hidden = torch.clamp(h_n.squeeze(0), -10, 10)  
+        return self.classifier(final_hidden)  

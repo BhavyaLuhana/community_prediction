@@ -12,7 +12,6 @@ SAVE_DIR.mkdir(parents=True, exist_ok=True)
 print(f"Input file location: {EDGE_PATH}")
 print(f"Output directory: {SAVE_DIR}")
 
-# Verify input file exists
 if not EDGE_PATH.exists():
     raise FileNotFoundError(f"Input file not found at: {EDGE_PATH}")
 
@@ -28,7 +27,7 @@ edges = list(G_full.edges())
 random.shuffle(edges)
 
 n_parts = 10
-chunk_size = max(1, len(edges) // n_parts)  # Ensure at least 1 edge per part
+chunk_size = max(1, len(edges) // n_parts)  
 print(f"Total edges in full graph: {len(edges)}")
 print(f"Chunk size per snapshot: {chunk_size}")
 
@@ -36,7 +35,7 @@ snapshots = []
 
 print("\nGenerating snapshots...")
 for i in range(1, n_parts + 1):
-    edge_subset = edges[:min(i * chunk_size, len(edges))]  # Cap at total number of edges
+    edge_subset = edges[:min(i * chunk_size, len(edges))]  
     G_snapshot = nx.Graph()
     G_snapshot.add_edges_from(edge_subset)
     
@@ -50,5 +49,5 @@ for i in range(1, n_parts + 1):
     snapshots.append(G_snapshot)
 
 print(f"Loaded graph with {len(G_full.nodes())} nodes and {len(G_full.edges())} edges")
-print(f"\n✅ Successfully saved {n_parts} snapshots to {SAVE_DIR}")
-print("🗂️ Files created:", [f.name for f in SAVE_DIR.glob("*.gpickle")])
+print(f"\n Successfully saved {n_parts} snapshots to {SAVE_DIR}")
+print(" Files created:", [f.name for f in SAVE_DIR.glob("*.gpickle")])
